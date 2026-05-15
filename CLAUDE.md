@@ -15,7 +15,13 @@ go build -o sector-radar main.go
 ./sector-radar
 ```
 
-There are no tests. Linting: `go vet ./...`
+```bash
+# Run tests
+go test ./...
+
+# Lint
+go vet ./...
+```
 
 ## Architecture
 

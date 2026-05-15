@@ -83,8 +83,43 @@ var sectorNames = map[string]string{
 	"SX20": "Health Care",
 }
 
+var csvPairs = [][2]string{
+	{"omxspi_*.csv", "omxspi.csv"},
+	{"sx20pi_*.csv", "sx20pi.csv"},
+	{"sx30pi_*.csv", "sx30pi.csv"},
+	{"sx35pi_*.csv", "sx35pi.csv"},
+	{"sx50pi_*.csv", "sx50pi.csv"},
+}
+
+func normalizeCSVNames() { normalizeCSVNamesIn(".") }
+
+func normalizeCSVNamesIn(dir string) {
+	for _, pair := range csvPairs {
+		pattern, canonical := pair[0], pair[1]
+		matches, err := filepath.Glob(filepath.Join(dir, pattern))
+		if err != nil || len(matches) == 0 {
+			continue
+		}
+		sort.Strings(matches)
+		latest := matches[len(matches)-1]
+		dest := filepath.Join(dir, canonical)
+		if latest == dest {
+			continue
+		}
+		if err := os.Rename(latest, dest); err != nil {
+			fmt.Printf("  Warning: could not normalize %s: %v\n", latest, err)
+			continue
+		}
+		fmt.Printf("  Normalized %s → %s\n", filepath.Base(latest), canonical)
+		for _, m := range matches[:len(matches)-1] {
+			os.Remove(m)
+		}
+	}
+}
+
 func main() {
 	fmt.Println("Starting Sector Rotation Radar...")
+	normalizeCSVNames()
 	dataSeries := fetchRealMarketData()
 	if len(dataSeries) == 0 {
 		fmt.Println("No data available. Exiting.")
