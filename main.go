@@ -20,12 +20,12 @@ import (
 )
 
 type MarketData struct {
-	Date    string  `json:"Date"`
-	OMXSPI  float64 `json:"OMXSPI"`
-	SX20PI  float64 `json:"SX20PI"`  // Health Care (Recession Defense)
-	SX30PI  float64 `json:"SX30PI"`  // Financials/Banks (High-Yield Haven)
-	SX35PI  float64 `json:"SX35PI"`  // Real Estate (Rate Cut Play)
-	SX50PI  float64 `json:"SX50PI"`  // Industrials (Export Recovery)
+	Date     string  `json:"Date"`
+	OMXSPI   float64 `json:"OMXSPI"`
+	SX20PI   float64 `json:"SX20PI"` // Health Care (Recession Defense)
+	SX30PI   float64 `json:"SX30PI"` // Financials/Banks (High-Yield Haven)
+	SX35PI   float64 `json:"SX35PI"` // Real Estate (Rate Cut Play)
+	SX50PI   float64 `json:"SX50PI"` // Industrials (Export Recovery)
 	Yield2Y  float64 `json:"Yield2Y"`
 	Yield10Y float64 `json:"Yield10Y"`
 }
@@ -64,11 +64,11 @@ type CrossoverSignal struct {
 }
 
 type RegimeSummary struct {
-	YieldEnv       string `json:"yield_environment"`
-	SpreadStatus   string `json:"spread_status"`
+	YieldEnv        string `json:"yield_environment"`
+	SpreadStatus    string `json:"spread_status"`
 	StrongestSector string `json:"strongest_sector"`
-	WeakestSector  string `json:"weakest_sector"`
-	RotationSignal string `json:"rotation_signal"`
+	WeakestSector   string `json:"weakest_sector"`
+	RotationSignal  string `json:"rotation_signal"`
 }
 
 type RiksbankObs struct {
@@ -159,19 +159,33 @@ func fetchRealMarketData() []MarketData {
 	for dateStr := range allNewDates {
 		md := marketDataMap[dateStr]
 		md.Date = dateStr
-		if val, ok := seriesOMX[dateStr]; ok { md.OMXSPI = val }
-		if val, ok := seriesSX20[dateStr]; ok { md.SX20PI = val }
-		if val, ok := seriesSX30[dateStr]; ok { md.SX30PI = val }
-		if val, ok := seriesSX35[dateStr]; ok { md.SX35PI = val }
-		if val, ok := seriesSX50[dateStr]; ok { md.SX50PI = val }
+		if val, ok := seriesOMX[dateStr]; ok {
+			md.OMXSPI = val
+		}
+		if val, ok := seriesSX20[dateStr]; ok {
+			md.SX20PI = val
+		}
+		if val, ok := seriesSX30[dateStr]; ok {
+			md.SX30PI = val
+		}
+		if val, ok := seriesSX35[dateStr]; ok {
+			md.SX35PI = val
+		}
+		if val, ok := seriesSX50[dateStr]; ok {
+			md.SX50PI = val
+		}
 		marketDataMap[dateStr] = md
 	}
 
 	// Fetch real bond yields from Riksbank
 	var minDate, maxDate string
 	for d := range marketDataMap {
-		if minDate == "" || d < minDate { minDate = d }
-		if maxDate == "" || d > maxDate { maxDate = d }
+		if minDate == "" || d < minDate {
+			minDate = d
+		}
+		if maxDate == "" || d > maxDate {
+			maxDate = d
+		}
 	}
 
 	if minDate != "" && maxDate != "" {
@@ -498,12 +512,18 @@ func buildRegimeSummary(data []MarketData, periodLabel string, lookbackDays int)
 }
 
 func getSectorRS(d MarketData, sector string) float64 {
-	if d.OMXSPI <= 0 { return 0 }
+	if d.OMXSPI <= 0 {
+		return 0
+	}
 	switch sector {
-	case "SX50": return (d.SX50PI / d.OMXSPI) * 100
-	case "SX35": return (d.SX35PI / d.OMXSPI) * 100
-	case "SX30": return (d.SX30PI / d.OMXSPI) * 100
-	case "SX20": return (d.SX20PI / d.OMXSPI) * 100
+	case "SX50":
+		return (d.SX50PI / d.OMXSPI) * 100
+	case "SX35":
+		return (d.SX35PI / d.OMXSPI) * 100
+	case "SX30":
+		return (d.SX30PI / d.OMXSPI) * 100
+	case "SX20":
+		return (d.SX20PI / d.OMXSPI) * 100
 	}
 	return 0
 }
@@ -865,10 +885,18 @@ func exportLLMSignals(data []MarketData) {
 
 	rsMap := make(map[string]float64)
 	if lastData.OMXSPI > 0 {
-		if lastData.SX20PI > 0 { rsMap["SX20"] = (lastData.SX20PI / lastData.OMXSPI) * 100 }
-		if lastData.SX30PI > 0 { rsMap["SX30"] = (lastData.SX30PI / lastData.OMXSPI) * 100 }
-		if lastData.SX35PI > 0 { rsMap["SX35"] = (lastData.SX35PI / lastData.OMXSPI) * 100 }
-		if lastData.SX50PI > 0 { rsMap["SX50"] = (lastData.SX50PI / lastData.OMXSPI) * 100 }
+		if lastData.SX20PI > 0 {
+			rsMap["SX20"] = (lastData.SX20PI / lastData.OMXSPI) * 100
+		}
+		if lastData.SX30PI > 0 {
+			rsMap["SX30"] = (lastData.SX30PI / lastData.OMXSPI) * 100
+		}
+		if lastData.SX35PI > 0 {
+			rsMap["SX35"] = (lastData.SX35PI / lastData.OMXSPI) * 100
+		}
+		if lastData.SX50PI > 0 {
+			rsMap["SX50"] = (lastData.SX50PI / lastData.OMXSPI) * 100
+		}
 	}
 
 	var rankings []Ranking
@@ -883,14 +911,22 @@ func exportLLMSignals(data []MarketData) {
 	}
 
 	getOldRS := func(idx int, sector string) float64 {
-		if idx < 0 { idx = 0 }
+		if idx < 0 {
+			idx = 0
+		}
 		d := data[idx]
-		if d.OMXSPI <= 0 { return 0 }
+		if d.OMXSPI <= 0 {
+			return 0
+		}
 		switch sector {
-		case "SX20": return (d.SX20PI / d.OMXSPI) * 100
-		case "SX30": return (d.SX30PI / d.OMXSPI) * 100
-		case "SX35": return (d.SX35PI / d.OMXSPI) * 100
-		case "SX50": return (d.SX50PI / d.OMXSPI) * 100
+		case "SX20":
+			return (d.SX20PI / d.OMXSPI) * 100
+		case "SX30":
+			return (d.SX30PI / d.OMXSPI) * 100
+		case "SX35":
+			return (d.SX35PI / d.OMXSPI) * 100
+		case "SX50":
+			return (d.SX50PI / d.OMXSPI) * 100
 		}
 		return 0
 	}
@@ -904,9 +940,13 @@ func exportLLMSignals(data []MarketData) {
 		rs1M := getOldRS(idx1M, sec)
 
 		chg1W := 0.0
-		if rs1W > 0 { chg1W = (val - rs1W) / rs1W }
+		if rs1W > 0 {
+			chg1W = (val - rs1W) / rs1W
+		}
 		chg1M := 0.0
-		if rs1M > 0 { chg1M = (val - rs1M) / rs1M }
+		if rs1M > 0 {
+			chg1M = (val - rs1M) / rs1M
+		}
 
 		trend := "neutral"
 		if chg1M > 0.02 {
@@ -965,9 +1005,4 @@ func exportLLMSignals(data []MarketData) {
 	dataBytes, _ := json.MarshalIndent(out, "", "  ")
 	os.WriteFile("llm_signals.json", dataBytes, 0644)
 	fmt.Println("LLM JSON Signals exported: llm_signals.json")
-}
-
-func min(a, b int) int {
-	if a < b { return a }
-	return b
 }
